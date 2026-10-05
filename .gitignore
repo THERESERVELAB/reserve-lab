@@ -1,0 +1,95 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+# the variable template carries no secrets and must ship with the repo
+!.env.example
+
+# raw approved visual sources (20MB PNGs — optimized WebP versions live in /public)
+/Approved visuals/
+
+# local agent settings and generated worktrees stay local;
+# the shared design capability stack is versioned with the repo
+/.claude/*
+!/.claude/skills/
+!/.claude/agents/
+!/.claude/commands/
+!/.claude/DESIGN_SKILL_MAP.md
+!/.claude/CAPABILITY_STACK.md
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+.vercel
+next-start*.log
+
+# On-device OCR engine, copied from node_modules by scripts/copy-ocr-assets.mjs
+/public/ocr/
+
+# capacitor — native build output and locally generated dependencies.
+# The native PROJECTS (android/, ios/) are versioned on purpose: they carry
+# the deep-link registration, permissions and store configuration that the
+# app cannot be built correctly without.
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/local.properties
+/android/.idea/
+/android/app/release/
+/android/capacitor-cordova-android-plugins/
+/ios/App/Pods/
+/ios/App/App.xcworkspace/xcuserdata/
+/ios/App/App.xcodeproj/xcuserdata/
+/ios/App/build/
+/ios/App/output/
+/ios/DerivedData/
+# Web assets Capacitor copies in from mobile/www on every sync.
+/android/app/src/main/assets/public/
+/ios/App/App/public/
+
+# capacitor-assets always emits PWA output alongside the native icons, with no
+# flag to turn it off. Reserve ships a native shell that hosts the deployed
+# origin, not a PWA, and the emitted manifest points at ../icons/ — a path that
+# escapes public/ and 404s. Regenerated on every `npm run mobile:assets`.
+/icons/
+/public/manifest.webmanifest

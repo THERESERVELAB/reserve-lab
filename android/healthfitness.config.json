@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "SLEEP": "Read",
+    "HEART_RATE": "Read",
+    "OXYGEN_SATURATION": "Read",
+    "WEIGHT": "Read",
+    "BODY_FAT_PERCENTAGE": "Read",
+    "STEPS": "Read",
+    "CALORIES_BURNED": "Read",
+    "DISTANCE": "Read"
+  },
+  "disableBackgroundJobs": true,
+  "disableReadHealthDataHistory": true,
+  "privacyPolicyUrl": "https://www.thereservelab.com/privacy"
+}

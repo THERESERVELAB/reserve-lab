@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <title>Reserve Lab</title>
+    <style>
+      /* This page is bundled inside the signed binary and is the only screen
+         the shell can draw without the network. It deliberately carries no
+         product surface, no data and no claims — it exists to say the
+         connection failed and to offer a retry. */
+      :root {
+        color-scheme: dark;
+        --ink: #07080c;
+        --line: rgba(255, 255, 255, 0.1);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.55);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      body {
+        background: var(--ink);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: calc(24px + env(safe-area-inset-top, 0px)) 24px calc(24px + env(safe-area-inset-bottom, 0px));
+        text-align: center;
+        -webkit-font-smoothing: antialiased;
+      }
+      main {
+        max-width: 22rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+        align-items: center;
+      }
+      .mark {
+        font-size: 0.6875rem;
+        letter-spacing: 0.34em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      h1 {
+        font-size: 1.375rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        margin: 0;
+      }
+      p {
+        margin: 0;
+        font-size: 0.9375rem;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+      button {
+        appearance: none;
+        margin-top: 0.5rem;
+        padding: 0.875rem 2rem;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        font: inherit;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        cursor: pointer;
+        min-height: 44px;
+      }
+      button:active {
+        background: rgba(255, 255, 255, 0.12);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="mark">Reserve Lab</div>
+      <h1>No connection</h1>
+      <p>Reserve could not reach your account. Check your connection and try again.</p>
+      <button type="button" id="retry">Try again</button>
+    </main>
+    <script>
+      // reload() returns to the hosted origin configured in capacitor.config.ts;
+      // the shell re-enters the app as soon as it answers.
+      document.getElementById("retry").addEventListener("click", function () {
+        window.location.reload();
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Universal Links. iOS fetches
+	     https://www.thereservelab.com/.well-known/apple-app-site-association
+	     and caches it, so the file must be correct before a build ships.
+	     webcredentials lets a password manager offer the saved Reserve login
+	     inside the app. -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:www.thereservelab.com</string>
+		<string>webcredentials:www.thereservelab.com</string>
+	</array>
+	<!-- HealthKit read access.
+
+	     This file is only half the story: the HealthKit capability must also
+	     be enabled for com.reservelab.app in the Apple Developer portal and
+	     be present in the provisioning profile the build is signed with.
+	     Without that, the signed build is rejected at upload with a
+	     "provisioning profile doesn't include the com.apple.developer.healthkit
+	     entitlement" error, which reads like a code problem and is not one.
+
+	     Reserve reads only. There is no clinical-records access: Reserve does
+	     not read health records, and requesting that entitlement would
+	     invite an App Review question Reserve has no need to answer. -->
+	<key>com.apple.developer.healthkit</key>
+	<true/>
+	<key>com.apple.developer.healthkit.access</key>
+	<array/>
+</dict>
+</plist>

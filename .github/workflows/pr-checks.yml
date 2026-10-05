@@ -1,0 +1,164 @@
+# ════════════════════════════════════════════════════════════════════════
+# PR CHECKS — what has to hold before a branch reaches main.
+#
+# A full sweep of the e2e suite on 2026-09-25 found 17 red tests across seven
+# files. Not one was a defect in the app: two specs had rotted off behaviour
+# the owner had changed months earlier, and the rest measured entrance
+# animations mid-flight. They had been red for weeks because nothing ran them
+# except by hand, one file at a time, when someone already suspected a
+# problem.
+#
+# That is what this workflow is for. The suite is only worth its cost if it
+# runs on every change, so a spec that stops describing the app is caught in
+# the PR that did it rather than in a sweep months later.
+#
+# Two jobs, because they fail for different reasons and one is much slower:
+#   checks   lint, types, unit tests, production build — a few minutes
+#   e2e      656 browser tests, split four ways
+#
+# The e2e job runs `next dev`, exactly as the suite runs locally, so what CI
+# exercises is what the specs were written against. NODE_ENV is development
+# there, which keeps the safety launch switch on (lib/launch/safety-tools.ts)
+# — the same server the tests expect. No Supabase vars are set, so the app
+# renders the member shell rather than the sign-in gate, again as it does
+# locally.
+# ════════════════════════════════════════════════════════════════════════
+
+name: PR checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# A second push to the same branch makes the first run's answer worthless.
+# Runs on main are never cancelled: that history is the record of what landed.
+concurrency:
+  group: pr-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  # ── Cheap, and they catch most of what goes wrong ─────────────────────
+  checks:
+    name: Lint, types, unit, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+      # The build is a check in its own right: a type error the editor accepts
+      # and a route that cannot be rendered both surface only here.
+      - run: npm run build
+
+  # ── The suite, four ways ──────────────────────────────────────────────
+  e2e:
+    name: e2e (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # NOT BLOCKING YET, and this line should be deleted rather than lived with.
+    #
+    # It was 27 failures in three buckets. It is now 6, and two of the four
+    # shards are green. What the first two buckets turned out to be is worth
+    # keeping, because the original diagnosis was wrong in both cases:
+    #
+    #   11  NOT "the room loops never play" — they play fine here. The runner
+    #       reports hardwareConcurrency 2, and loopDualLayerAllowed is
+    #       `cores > 4`, so Reserve correctly composed ONE layer while the
+    #       specs described two. A spec now states the device it means
+    #       (tests/e2e/support/device-profile.ts).
+    #
+    #   10  NOT an environment gap at all — a real bug, on any slow device.
+    #       AnimatePresence releases a child only once every animation inside
+    #       it has finished, and framer stalls mid-exit under CPU starvation:
+    #       measured at 10x throttle, a panel's y reached its exit target
+    #       while opacity never moved. Six overlays stayed in the DOM over a
+    #       dimmed, inert screen, and with `mode="wait"` a stalled exit meant
+    #       the NEXT tab panel never mounted at all. Overlay and tab-panel
+    #       exits are gone; entry animations are untouched.
+    #
+    #    6  motion timing — still open. These specs sample a transient state
+    #       (the trace mid-flight, the layer "on arrival", which sound played
+    #       last) and a slow machine has simply moved past it by the time the
+    #       test looks. Closing them means deciding what those specs should
+    #       promise, not another environment fix: an attempt to restate the
+    #       settling one as an invariant showed the layer DOES animate while
+    #       the room still reads "settling", so the assertion means the first
+    #       frame after boot rather than the whole settle.
+    #
+    # A job that is red on every pull request teaches everyone to ignore it,
+    # which is worse than not running it at all. So it runs, and its result is
+    # visible on the PR, but it does not block until the last six are closed.
+    continue-on-error: true
+    strategy:
+      # One shard failing says nothing about the other three, and the whole
+      # picture is what makes a failure diagnosable.
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      # `--with-deps` installs the system libraries headless Chromium needs on
+      # a bare runner; without them it starts and immediately dies.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      # playwright.config.ts pins CI to a single worker. A shard of 164 tests
+      # takes about half an hour that way, most of it one browser waiting for
+      # another to finish; two workers on a four-core runner halves it and
+      # still leaves room for the dev server that is compiling routes beside
+      # them. Raise the shard count here to make each one shorter, at the cost
+      # of a runner and another npm ci per shard.
+      - name: Run shard
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/4 --workers=2 --reporter=line
+        env:
+          RESERVE_E2E_PORT: "3000"
+
+      # A failure on a runner is unreproducible locally, so the evidence has
+      # to come back with the run or it does not exist.
+      - name: Keep the failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failures-shard-${{ matrix.shard }}
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      # Error context is the per-test markdown Playwright writes on a failure:
+      # the accessibility snapshot at the moment it gave up. It is the
+      # difference between "a locator timed out" and knowing what was on
+      # screen instead.
+      - name: Upload failure context
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failures-shard-${{ matrix.shard }}
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore

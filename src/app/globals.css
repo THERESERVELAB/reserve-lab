@@ -1,0 +1,1062 @@
+@import "tailwindcss";
+
+:root {
+  --background: #07080c;
+  --foreground: #ece8df;
+  --gold: #d5b15f;
+  --teal: #5fb7d5;
+  --sidebar-bg: #08090e;
+  --card-bg: #0d0e14;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* ─── Luxury display type ────────────────────── */
+.font-display {
+  font-family: var(--font-display), var(--font-geist-sans), Arial, sans-serif;
+  letter-spacing: -0.018em;
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "cv01" 1;
+}
+
+/* ─── Reserve three-layer type system ──────────
+   HERO    — the emotional statement the screen is designed around.
+   COMMAND — the decision: short, calm, declarative instruction language.
+   WHISPER — small tracked system labels (luxury labeling, not dashboard
+             labeling). Mono, generous letter-spacing.                  */
+.type-hero {
+  font-family: var(--font-display), var(--font-geist-sans), Arial, sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.025em;
+  line-height: 0.92;
+  font-size: clamp(34px, 5vw, 64px);
+}
+.type-hero-xl {
+  font-size: clamp(42px, 7vw, 96px);
+}
+.type-command {
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(242, 238, 230, 0.78);
+  font-weight: 500;
+}
+.type-whisper {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* ─── Reserve typography tokens ────────────────────────────────────────
+   The named scale every surface composes from. Two families only:
+   Geist (interface) + Inter Tight (display); Geist Mono is reserved for
+   whisper/eyebrow labeling. Sizes follow the Reserve scale — desktop
+   first value, mobile floor via clamp. */
+.type-display-xl {
+  font-family: var(--font-display), var(--font-geist-sans), Arial, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  line-height: 0.94;
+  font-size: clamp(38px, 4.6vw, 64px);
+}
+.type-display {
+  font-family: var(--font-display), var(--font-geist-sans), Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.022em;
+  line-height: 1.02;
+  font-size: clamp(30px, 3.4vw, 46px);
+}
+.type-page-title {
+  font-family: var(--font-display), var(--font-geist-sans), Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.018em;
+  line-height: 1.08;
+  font-size: clamp(24px, 2.6vw, 34px);
+}
+.type-section-title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  font-size: clamp(18px, 1.6vw, 22px);
+}
+.type-card-title {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  font-size: clamp(14px, 1.2vw, 16px);
+}
+.type-eyebrow {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: clamp(10px, 0.9vw, 12px);
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: rgba(255, 255, 255, 0.42);
+}
+.type-body {
+  font-size: clamp(14px, 1.15vw, 16px);
+  line-height: 1.6;
+}
+.type-supporting {
+  font-size: clamp(12px, 1vw, 14px);
+  line-height: 1.5;
+  color: rgba(236, 232, 223, 0.6);
+}
+.type-metric-xl {
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 0.92;
+  font-size: clamp(38px, 4vw, 56px);
+}
+.type-metric {
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-size: clamp(24px, 2.5vw, 34px);
+}
+
+/* Jewelry numerals — key numbers presented as objects, not table cells */
+.type-jewel {
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 0.9;
+  font-size: clamp(44px, 6vw, 84px);
+  text-shadow: 0 0 44px rgba(213, 177, 95, 0.22);
+}
+
+html {
+  background: var(--background);
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  margin: 0;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Layered so Tailwind utilities (a later layer) can size controls — an
+   unlayered reset silently overrides every text-[…] utility on buttons
+   and form fields. */
+@layer base {
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+}
+
+/* ─── Mobile input floor (accessibility.md — non-negotiable) ─────────────
+   iOS Safari zooms the viewport whenever a focused form control renders
+   below 16px, which throws off the layout and breaks the rimless illusion
+   the whole product depends on. Reserve's forms ship 12–13px text, so this
+   was happening on essentially every input in the product.
+
+   Fixing it at 3,700 call sites is not the right move — the small type is a
+   deliberate desktop density decision. This raises the floor ON TOUCH
+   VIEWPORTS ONLY, so desktop density is untouched and iOS stops zooming.
+
+   `!important` is required: it has to beat Tailwind's text-[12px] utility,
+   which is what every one of those call sites uses. Scoped as tightly as
+   possible — only real form controls, only below the tablet breakpoint.
+   A numeral input (`data-numeral`, e.g. the set logger's reps and load) sets
+   its own display size, always well above 16px, so it is left alone. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([data-numeral]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* ─── Environment plate ──────────────────────────────────────────────────
+   The focal point travels as a custom property so that ReserveEnvironment can
+   art-direct the crop WITHOUT passing a `style` prop to next/image.
+
+   That distinction is load-bearing. With `fill`, next/image injects its own
+   positioning declarations into the element's inline style; merging any
+   author style into that same object made React serialize it differently on
+   the server (`left: "0px"`) than on the client (`left: 0`), which produced a
+   real "Hydration failed" error on every screen carrying a plate. Moving the
+   one dynamic value out to a custom property leaves next/image's inline style
+   untouched, so both renders agree. */
+.fba-plate {
+  object-fit: cover;
+  object-position: var(--fba-focal, 50% 50%);
+}
+
+/* ─── Page rhythm (spacing.md rule 2) ────────────────────────────────────
+   A flex `gap` is by definition uniform, and uniform spacing flattens
+   hierarchy. ReservePage sets the base gap; this adds the STEP: the silence
+   after the command header is larger than the silence between the sections
+   that follow, so the header reads as the screen's subject rather than as
+   the first item in a list. Scoped to the direct header child so a page
+   without one is unaffected. */
+.fba-page > header:first-child {
+  margin-bottom: 8px;
+}
+@media (min-width: 1024px) {
+  .fba-page > header:first-child {
+    margin-bottom: 18px;
+  }
+}
+
+/* ─── Focus ──────────────────────────────────────────────────────────────
+   Reserve's rims are white/0.04 and the void is #07080c. The UA default
+   focus ring is effectively invisible against that, so focus styling here is
+   deliberate: a gold ring plus a dark offset halo that keeps it legible over
+   a glass panel AND over a cinematic plate. Applies to keyboard focus only —
+   :focus-visible, never :focus — so a pointer press stays silent. */
+:where(a, button, input, textarea, select, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 6px;
+  box-shadow: 0 0 0 5px rgba(7, 8, 12, 0.85);
+}
+
+/* Opt-in for a custom control that paints its own focus treatment. */
+.fba-focus-none:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* ─── Touch target floor ────────────────────────────────────────────────
+   Reserve's density floors are VISUAL padding. This expands the HIT area to
+   the 44px accessibility minimum without changing a single rendered pixel,
+   so a compact chip stays compact and still passes target-size. */
+.fba-target::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  min-width: 44px;
+  min-height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+/* ─── Touch ──────────────────────────────────────────────────────────────
+   No grey tap flash: a tap on Reserve answers with its own pressed state,
+   not the browser's. The pressed state dims the control a touch while the
+   finger is down, on touch screens only, and never replaces the
+   :focus-visible ring above. */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+@media (pointer: coarse) {
+  :where(button, a[href], summary, [role="button"], [role="tab"], label[for]):not(:disabled):active,
+  .fba-press:active {
+    filter: brightness(0.84);
+  }
+}
+
+/* ─── Phone shell (below md) ─────────────────────────────────────────────
+   The document scrolls; the top bar is sticky; the bottom stack (a docked
+   action, then the tab bar) is fixed to the screen. AppShell publishes the
+   stack's height as --fba-shell-bottom-h so the page pads by it and scroll
+   anchors stop above it and below the top bar. From md up the stack is in
+   flow under <main>, exactly as before. */
+.fba-shell-bottom {
+  position: relative;
+  z-index: 20;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (max-width: 767px) {
+  html {
+    scroll-padding-top: calc(48px + env(safe-area-inset-top, 0px) + 12px);
+    scroll-padding-bottom: calc(var(--fba-shell-bottom-h, calc(56px + env(safe-area-inset-bottom, 0px))) + 12px);
+  }
+  .fba-shell-bottom {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* The tab bar paints its own ground under the home indicator. */
+    padding-bottom: 0;
+  }
+  .fba-shell-main {
+    padding-bottom: var(--fba-shell-bottom-h, calc(56px + env(safe-area-inset-bottom, 0px)));
+  }
+  /* A sheet or drawer owns the bottom of the screen while it is open, so the
+     tab bar and any docked action step out of its way — including sheets
+     rendered inside the page, which sit in a lower stacking context. */
+  body:has([aria-modal="true"]) .fba-shell-bottom {
+    visibility: hidden;
+  }
+  /* An in-flow sticky action bar stops above the tab bar. */
+  .fba-actionbar-sticky {
+    bottom: var(--fba-shell-bottom-h, calc(56px + env(safe-area-inset-bottom, 0px)));
+  }
+}
+
+/* ─── Disclosure caret ───────────────────────────────────────────────────
+   Turns with the disclosure: it swings back as soon as a close begins, not
+   when the closing animation ends. */
+.fba-disclosure-caret {
+  display: inline-block;
+  transition: rotate 200ms cubic-bezier(0.2, 0, 0, 1);
+}
+.fba-disclosure[open]:not([data-closing]) > summary > .fba-disclosure-caret {
+  rotate: 90deg;
+}
+
+/* ─── Scroll rail ────────────────────────────────────────────────────────
+   Horizontal content (week rails, timelines) scrolls inside its own track
+   so the page body never scrolls sideways. */
+.fba-rail {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+.fba-rail::-webkit-scrollbar {
+  display: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+/* ─── Edge-to-edge hardware integration ────────
+   Content bleeds to the physical edges; these utilities keep interactive
+   surfaces inside the safe areas (Dynamic Island, home indicator, curves). */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-x {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* ─── Overlay scrim ──────────────────────────────
+   A modal backdrop fades in with CSS rather than as a presence-tracked
+   animation. AnimatePresence releases a child only once EVERY animation
+   inside it has finished, so an animated scrim is a second thing that can
+   stall — and on a CPU-starved device one did, leaving a fully opaque
+   backdrop over a screen the member could not dismiss. Entry is decoration;
+   leaving must not depend on it. */
+@keyframes fba-scrim-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.fba-scrim-in { animation: fba-scrim-in 200ms ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .fba-scrim-in { animation: none; }
+}
+
+/* ─── Live pulse ─────────────────────────────── */
+@keyframes fba-pulse {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50% { opacity: 0.25; transform: scale(0.78); }
+}
+.fba-pulse { animation: fba-pulse 3.6s ease-in-out infinite; }
+
+/* Luxury slow breath — for premium glow accents */
+@keyframes fba-breath {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.18; }
+}
+.fba-breath { animation: fba-breath 5.5s ease-in-out infinite; }
+
+/* ─── Bottom ticker ──────────────────────────── */
+@keyframes fba-ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.fba-ticker-track {
+  animation: fba-ticker 60s linear infinite;
+  will-change: transform;
+}
+.fba-ticker-track:hover { animation-play-state: paused; }
+
+/* ─── Ambient blob drift ─────────────────────── */
+@keyframes fba-drift-a {
+  0%,  100% { transform: translate(0px,    0px)  scale(1);    }
+  33%       { transform: translate(80px,  -50px)  scale(1.1);  }
+  66%       { transform: translate(-40px,  60px)  scale(0.92); }
+}
+@keyframes fba-drift-b {
+  0%,  100% { transform: translate(0px,   0px)   scale(1);    }
+  40%       { transform: translate(-90px, 40px)   scale(1.12); }
+  80%       { transform: translate(60px, -70px)   scale(0.88); }
+}
+.fba-ambient-a {
+  animation: fba-drift-a 55s ease-in-out infinite;
+  will-change: transform;
+}
+.fba-ambient-b {
+  animation: fba-drift-b 72s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ─── Dot grid ───────────────────────────────── */
+.fba-grid {
+  background-image: radial-gradient(rgba(255,255,255,0.055) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+/* ─── Noise texture ──────────────────────────── */
+.fba-noise {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/></filter><rect width='300' height='300' filter='url(%23n)'/></svg>");
+  opacity: 0.028;
+}
+
+/* ─── Gradient border ────────────────────────── */
+.fba-gradient-border {
+  position: relative;
+}
+.fba-gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(213,177,95,0.28) 0%, rgba(255,255,255,0.07) 40%, rgba(95,183,213,0.14) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ─── Heartbeat — Reserve Performance Core ───── */
+@keyframes fba-heartbeat {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -50%) scale(1.018); }
+}
+.fba-heartbeat { animation: fba-heartbeat 3.4s ease-in-out infinite; will-change: transform; }
+
+/* Soft glow pulse — active node / live accents */
+@keyframes fba-glow-pulse {
+  0%, 100% { opacity: 0.95; }
+  50%      { opacity: 0.45; }
+}
+.fba-glow-pulse { animation: fba-glow-pulse 2.8s ease-in-out infinite; }
+
+/* Light sweep — slow sheen across hero glass */
+@keyframes fba-sweep {
+  0%   { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+  10%  { opacity: 0.45; }
+  32%  { opacity: 0; }
+  100% { transform: translateX(280%) skewX(-18deg); opacity: 0; }
+}
+.fba-sweep { animation: fba-sweep 12s ease-in-out infinite; will-change: transform; }
+
+/* A surface's leading edge carries a slow travelling light — the room's own
+   light running along the glass, not an effect painted on top. Used by the
+   phone sheet and the menu drawer; reduced motion drops it to a still edge. */
+@keyframes fba-edge-flow {
+  0%   { transform: translateX(-60%); opacity: 0; }
+  18%  { opacity: 1; }
+  72%  { opacity: 1; }
+  100% { transform: translateX(160%); opacity: 0; }
+}
+@keyframes fba-edge-flow-y {
+  0%   { transform: translateY(-60%); opacity: 0; }
+  18%  { opacity: 1; }
+  72%  { opacity: 1; }
+  100% { transform: translateY(160%); opacity: 0; }
+}
+.fba-edge-flow   { animation: fba-edge-flow 9s cubic-bezier(0.22, 1, 0.36, 1) infinite; will-change: transform; }
+.fba-edge-flow-y { animation: fba-edge-flow-y 9s cubic-bezier(0.22, 1, 0.36, 1) infinite; will-change: transform; }
+
+/* Champagne shimmer for gradient-clipped identity text */
+@keyframes fba-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.fba-shimmer { background-size: 200% 200% !important; animation: fba-shimmer 9s ease-in-out infinite; }
+
+/* One-shot section rise (use with .fba-stagger parent for cascade) */
+@keyframes fba-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fba-stagger > * { animation: fba-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.fba-stagger > *:nth-child(1)  { animation-delay: 0ms; }
+.fba-stagger > *:nth-child(2)  { animation-delay: 50ms; }
+.fba-stagger > *:nth-child(3)  { animation-delay: 100ms; }
+.fba-stagger > *:nth-child(4)  { animation-delay: 150ms; }
+.fba-stagger > *:nth-child(5)  { animation-delay: 200ms; }
+.fba-stagger > *:nth-child(6)  { animation-delay: 250ms; }
+.fba-stagger > *:nth-child(7)  { animation-delay: 300ms; }
+.fba-stagger > *:nth-child(8)  { animation-delay: 350ms; }
+.fba-stagger > *:nth-child(9)  { animation-delay: 400ms; }
+.fba-stagger > *:nth-child(10) { animation-delay: 450ms; }
+.fba-stagger > *:nth-child(11) { animation-delay: 500ms; }
+.fba-stagger > *:nth-child(12) { animation-delay: 550ms; }
+
+/* ─── Living-dashboard luxury motion (24/7 awake state) ───────────────────
+   All controlled, slow, low-contrast. transform / opacity / background-position
+   only. Every utility is killed by the global prefers-reduced-motion block. */
+
+/* Aurora — slow gradient drift across premium surfaces */
+@keyframes fba-aurora {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+.fba-aurora { background-size: 220% 220% !important; animation: fba-aurora 18s ease-in-out infinite; }
+
+/* Slow ambient breath — living glow behind major command cards */
+@keyframes fba-breath-slow {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 0.14; }
+}
+.fba-breath-slow { animation: fba-breath-slow 8.5s ease-in-out infinite; }
+
+/* CTA sheen — one quiet light pass across high-value buttons */
+@keyframes fba-cta-sheen {
+  0%, 62% { transform: translateX(-260%) skewX(-18deg); }
+  84%     { transform: translateX(480%) skewX(-18deg); }
+  100%    { transform: translateX(480%) skewX(-18deg); }
+}
+.fba-cta-sheen { position: relative; overflow: hidden; }
+.fba-cta-sheen::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  bottom: -40%;
+  left: 0;
+  width: 36%;
+  background: linear-gradient(105deg, transparent, rgba(255, 252, 240, 0.32), transparent);
+  transform: translateX(-260%) skewX(-18deg);
+  animation: fba-cta-sheen 7.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Awake label — soft pulse for active / live section labels */
+@keyframes fba-label-glow {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+.fba-label-glow { animation: fba-label-glow 4.5s ease-in-out infinite; }
+
+/* Live rail pulse — active timeline lane rails */
+@keyframes fba-rail-pulse {
+  0%, 100% { opacity: 0.9; }
+  50%      { opacity: 0.3; }
+}
+.fba-rail-pulse { animation: fba-rail-pulse 3.8s ease-in-out infinite; }
+
+/* Gentle float — orbital nodes around the Performance Core */
+@keyframes fba-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-3px); }
+}
+.fba-float { animation: fba-float 6s ease-in-out infinite; }
+
+/* Quiet inner-glow pulse for the live timeline row */
+@keyframes fba-row-glow {
+  0%, 100% { box-shadow: inset 0 0 0 1px rgba(213, 177, 95, 0.20); }
+  50%      { box-shadow: inset 0 0 0 1px rgba(213, 177, 95, 0.42); }
+}
+.fba-row-glow { animation: fba-row-glow 3.2s ease-in-out infinite; }
+
+/* Even quieter amber pulse — the Due Next timeline row */
+@keyframes fba-row-glow-next {
+  0%, 100% { box-shadow: inset 0 0 0 1px rgba(232, 200, 122, 0.10); }
+  50%      { box-shadow: inset 0 0 0 1px rgba(232, 200, 122, 0.26); }
+}
+.fba-row-glow-next { animation: fba-row-glow-next 4.4s ease-in-out infinite; }
+
+/* ─── Room atmosphere system (per-view environment) ──────────────────────────
+   One ambient system renders different "weather" per destination (Design Bible
+   §09). Each room change fades its wash in over ≥1s — felt, not announced.
+   All CSS-only: transform / opacity / background-position. Killed under
+   prefers-reduced-motion by the global block below. */
+
+/* New room weather rises in over the persistent base — never a hard swap. */
+@keyframes fba-room-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.fba-room-in { animation: fba-room-in 1.25s ease both; }
+
+/* Apex rotation: a cosmic still drifts in, slowly enough to be felt, not
+   watched. Only ever mounted while the room's loop may play. */
+@keyframes fba-slow-push {
+  from { transform: scale(1); }
+  to { transform: scale(1.07); }
+}
+.fba-slow-push { animation: fba-slow-push 20s linear both; will-change: transform; }
+
+/* Scroll flow (owner 2026-09-18: phone rooms read stale). On a phone each
+   section eases up and into full light as it enters the screen, tied to the
+   scroll itself, so it moves exactly as fast as the thumb and never on its
+   own. Sections already on screen at load sit at rest. Only while ambient
+   motion is live: the pause, reduced motion and a hidden tab all stop it. */
+@keyframes fba-scroll-rise {
+  from { opacity: 0.4; transform: translate3d(0, 22px, 0) scale(0.985); }
+  to { opacity: 1; transform: none; }
+}
+@supports (animation-timeline: view()) {
+  @media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+    html[data-ambient="live"] main [data-surface] {
+      animation: fba-scroll-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 70%;
+    }
+  }
+}
+
+/* A daypart plate cross-fades in over the one it replaces (Bible §09: ≥1s).
+   Applied to the plate's wrapper, never to next/image — see `.fba-plate`. */
+@keyframes fba-plate-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.fba-plate-in { animation: fba-plate-in 1.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* Horizon timeline: light travels along each lane toward the now gate.
+   Atmosphere band (Bible §08). The dash period is 24px (2 on, 22 off), so
+   two periods per 12s cycle loop without a seam, at 4px a second. */
+@keyframes fba-horizon-flow {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: 48; }
+}
+.fba-horizon-flow { animation: fba-horizon-flow 12s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .fba-horizon-flow { animation: none; }
+}
+
+/* ── Living details (ReserveDetailImage) ─────────────────────────────────
+   A room's objects as a band inside a section. Atmosphere band (Bible §08):
+   a 24s drift, a 12s bronze light breath, a one-time reveal. Transform and
+   opacity only. The component sets data-motion from reduced motion and the
+   member's ambient pause; the media block below also holds reduced motion
+   before hydration. Paused holds the frame; still removes the animation. */
+.fba-detail {
+  --detail-focal: var(--detail-focal-m, 50% 50%);
+  --detail-zoom: var(--detail-zoom-m, 1);
+  --detail-pan: var(--detail-pan-m, 6px);
+  background: #07080c;
+}
+@media (min-width: 768px) {
+  .fba-detail {
+    --detail-focal: var(--detail-focal-d, 50% 50%);
+    --detail-zoom: var(--detail-zoom-d, 1);
+    --detail-pan: var(--detail-pan-d, 6px);
+  }
+}
+.fba-detail-blur {
+  background-image: var(--detail-blur);
+  background-size: cover;
+  background-position: var(--detail-focal);
+  filter: blur(16px);
+  transform: scale(1.15);
+}
+.fba-detail-frame {
+  transform: scale(var(--detail-zoom));
+  transform-origin: var(--detail-focal);
+}
+.fba-detail-drift {
+  transform-origin: var(--detail-focal);
+  animation: fba-detail-drift 24s ease-in-out infinite alternate;
+  will-change: transform;
+}
+.fba-detail-img {
+  object-fit: cover;
+  object-position: var(--detail-focal);
+}
+@keyframes fba-detail-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to   { transform: translate3d(var(--detail-pan), 0, 0) scale(1.05); }
+}
+.fba-detail-light {
+  background: radial-gradient(ellipse 75% 110% at 50% 0%, rgba(213, 177, 95, 0.14), transparent 68%);
+  opacity: 0.45;
+  animation: fba-detail-light 12s ease-in-out infinite alternate;
+}
+@keyframes fba-detail-light {
+  from { opacity: 0.3; }
+  to   { opacity: 0.85; }
+}
+.fba-detail-scrim {
+  background:
+    linear-gradient(to top, rgba(7, 8, 12, 0.88) 0%, rgba(7, 8, 12, 0.35) 38%, transparent 70%),
+    linear-gradient(to bottom, rgba(7, 8, 12, 0.28), transparent 30%);
+}
+.fba-detail[data-reveal="pending"] {
+  opacity: 0;
+  transform: translate3d(0, 10px, 0);
+}
+.fba-detail[data-reveal="in"] {
+  animation: fba-detail-reveal 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes fba-detail-reveal {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+.fba-detail[data-motion="paused"] .fba-detail-drift,
+.fba-detail[data-motion="paused"] .fba-detail-light {
+  animation-play-state: paused;
+}
+.fba-detail[data-motion="still"],
+.fba-detail[data-motion="still"] .fba-detail-drift,
+.fba-detail[data-motion="still"] .fba-detail-light {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fba-detail,
+  .fba-detail-drift,
+  .fba-detail-light {
+    animation: none !important;
+  }
+  .fba-detail[data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media print {
+  .fba-detail[data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+/* Lab / vault scanlines — slow vertical drift (Bloodwork, Reserve Black). */
+@keyframes fba-scan-drift {
+  from { background-position: 0 0; }
+  to   { background-position: 0 -64px; }
+}
+.fba-scanlines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(95, 183, 213, 0.05) 0px,
+    rgba(95, 183, 213, 0.05) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  animation: fba-scan-drift 14s linear infinite;
+  will-change: background-position;
+}
+
+/* Cockpit mechanical lines — faint vertical instrument rails (Training). */
+.fba-mech-lines {
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(213, 177, 95, 0.045) 0px,
+    rgba(213, 177, 95, 0.045) 1px,
+    transparent 1px,
+    transparent 88px
+  );
+}
+
+/* Instrument micro-grid — precision room (Measurements, clinical detail). */
+.fba-fine-grid {
+  background-image:
+    linear-gradient(rgba(142, 160, 184, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(142, 160, 184, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* Radar / orbit concentric rings — Mission Control (Apex). Breathes, no spin. */
+@keyframes fba-orbit-breath {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%      { opacity: 0.78; transform: scale(1.015); }
+}
+.fba-orbit-breath { animation: fba-orbit-breath 14s ease-in-out infinite; will-change: transform, opacity; }
+
+/* ─── Ambient intelligence ──────────────────────────────────────────────
+   The system is awake and answers the member. Transform and opacity only;
+   every rule below is an ordinary CSS animation, so the global reduced-motion
+   block neutralises it, and the loops additionally require
+   `:root[data-ambient="live"]`, which the shell sets only while the motion
+   gate is "full", the member has not paused, and the tab is visible
+   (src/lib/ui/ambient-motion.ts). */
+
+/* Signal received: a bronze light runs the hairline once (600ms). */
+@keyframes fba-signal-trace {
+  0%   { opacity: 0; transform: translate3d(-100%, 0, 0); }
+  18%  { opacity: 1; }
+  78%  { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(333.4%, 0, 0); }
+}
+.fba-signal-trace {
+  background: linear-gradient(90deg, transparent, rgba(196, 150, 84, 0.55) 30%, rgba(236, 206, 140, 0.95) 62%, transparent);
+  box-shadow: 0 0 8px rgba(213, 177, 95, 0.45);
+  animation: fba-signal-trace 600ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  will-change: transform, opacity;
+}
+
+/* …and the room it landed in glows once (900ms). */
+@keyframes fba-signal-glow {
+  0%   { opacity: 0; transform: scale(0.6); }
+  30%  { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.15); }
+}
+.fba-signal-glow { animation: fba-signal-glow 900ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* Awake light 1 — the room light breathes: one slow 16s cycle of the hero
+   spotlight between 80% and 100% of its own (already low) alpha. */
+@keyframes fba-room-breath {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.8; }
+}
+:root[data-ambient="live"] .fba-room-breath { animation: fba-room-breath 16s ease-in-out infinite; }
+
+/* Awake light 2 — a glass panel's top-edge light carries one faint pass every
+   14s (1.6s of travel, then rest). Transform only, on a 1px element. */
+@keyframes fba-edge-pass {
+  0%       { transform: translate3d(-100%, 0, 0); }
+  11.5%    { transform: translate3d(500%, 0, 0); }
+  100%     { transform: translate3d(500%, 0, 0); }
+}
+.fba-edge-light { transform: translate3d(-100%, 0, 0); }
+:root[data-ambient="live"] .fba-edge-light { animation: fba-edge-pass 14s cubic-bezier(0.45, 0, 0.25, 1) 2.4s infinite; }
+
+/* Systems online — the first Apex open of a browser session settles in
+   (≤900ms). The statement is the likely LCP, so it moves but never starts
+   invisible; the gold action is clickable from the first frame. The inline
+   head script in layout.tsx sets the attribute before first paint and the
+   shell removes it once played. */
+@keyframes fba-so-lift {
+  from { transform: translate3d(0, 10px, 0); }
+  to   { transform: none; }
+}
+@keyframes fba-so-settle {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes fba-so-fade {
+  from { opacity: 0.25; }
+  to   { opacity: 1; }
+}
+:root[data-systems-online="play"] .fba-so-statement { animation: fba-so-lift 600ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+:root[data-systems-online="play"] .fba-so-metric    { animation: fba-so-settle 520ms cubic-bezier(0.22, 1, 0.36, 1) 140ms both; }
+:root[data-systems-online="play"] .fba-so-action    { animation: fba-so-fade 480ms ease-out 300ms both; }
+
+/* Today's scores (Apex) — until the instrument decides on mount whether to
+   draw its dials in, they read empty, so the server paint never shows a full
+   dial that then empties and redraws. The decision runs on mount; a draw
+   then waits for the room to be on screen
+   (src/components/apex/pit-wall/DayScores.tsx). */
+[data-day-scores][data-arrival="pending"] [data-ring-arc],
+[data-day-scores][data-arrival="wait"] [data-ring-arc] { stroke-dashoffset: 100; }
+/* While a draw waits for the room to come on screen, its numerals wait too:
+   they count in from zero with the arcs. */
+[data-day-scores][data-arrival="pending"] [data-ring-reading],
+[data-day-scores][data-arrival="wait"] [data-ring-reading] { opacity: 0; }
+
+/* The day's line carries a hairline orbit: one turn every 36s (atmosphere
+   band), only while the shell's ambient motion is live. */
+@keyframes fba-orbit {
+  to { transform: rotate(360deg); }
+}
+.fba-orbit { transform-box: fill-box; transform-origin: 50% 50%; }
+:root[data-ambient="live"] .fba-orbit { animation: fba-orbit 36s linear infinite; }
+
+/* ─── Light flow ─────────────────────────────────────────────────────────
+   The room's own light, running in its architecture (src/lib/ui/light-flow.ts).
+   A thin luminous head with a short falling tail runs ONE seam at a time and
+   leaves it dark behind; behind that a far horizon grid breathes.
+
+   Bible §08 rule 1 — CSS-only for ambient motion, no JS loops for decoration.
+   The movement is one keyframe on stroke-dashoffset, exactly as the shipped
+   horizon flow (§08 rule 8) already runs light along its lanes. The geometry
+   is resolved in React when the viewport or the hero changes, never in a frame.
+
+   Every rule is an ordinary CSS animation, so the global reduced-motion block
+   below neutralises it; the ambient loops additionally require
+   :root[data-ambient="live"], which the shell sets only while the motion gate
+   is "full", the member has not paused, and the tab is visible. The layer also
+   unmounts outright in those states, so this is the second of two locks.  */
+
+/* The layer arrives once the screen has settled: a ≥1s fade, then stillness. */
+@keyframes fba-lf-arrive {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.fba-lf { animation: fba-lf-arrive 1400ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+/* The far horizon breathes between 72% and 100% of its own (already low)
+   alpha, once every 20s — the top of the atmosphere band. */
+@keyframes fba-lf-breath {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.72; }
+}
+:root[data-ambient="live"] .fba-lf-breath { animation: fba-lf-breath 20s ease-in-out infinite; }
+
+/* A pass. The dash enters at the head of the seam, runs it once over the
+   first 16% of the cycle, and then HOLDS off the end for the rest — a held
+   value stops changing, so the remaining 84% of every cycle repaints nothing.
+   --lf-from and --lf-to are written per stroke, which is what keeps the three
+   strokes of one traveller (core, body, tail) sharing a single leading edge. */
+@keyframes fba-lf-pass {
+  0%   { stroke-dashoffset: var(--lf-from); animation-timing-function: cubic-bezier(0.45, 0, 0.25, 1); }
+  16%  { stroke-dashoffset: var(--lf-to); }
+  100% { stroke-dashoffset: var(--lf-to); }
+}
+:root[data-ambient="live"] .fba-lf-pass {
+  animation: fba-lf-pass var(--lf-cycle, 15400ms) linear var(--lf-delay, 0ms) infinite both;
+}
+
+/* A surge: the room answering a log the member just made. One pass, faster
+   than weather, and the element is taken down when it ends. */
+@keyframes fba-lf-surge {
+  0%   { stroke-dashoffset: var(--lf-from); opacity: 0; }
+  14%  { opacity: 1; }
+  100% { stroke-dashoffset: var(--lf-to); opacity: 0; }
+}
+.fba-lf-surge { animation: fba-lf-surge 900ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* …and the hero seam brightens once behind it. Starts and ends at nothing, so
+   the seam is dark at rest. */
+@keyframes fba-lf-brighten {
+  0%   { opacity: 0; }
+  24%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.fba-lf-brighten { animation: fba-lf-brighten 1100ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fba-lf-pass,
+  .fba-lf-surge,
+  .fba-lf-brighten,
+  .fba-lf-breath {
+    animation: none !important;
+  }
+}
+
+/* ─── Private Entrance ─────────────────────────────────────────────────
+   The entrance is the one screen a member sees before they trust us, so
+   its motion budget is the smallest in the product: light that breathes
+   on an 18s cycle and a 6px settle on first paint. Anything a viewer can
+   consciously watch is too much here.
+
+   Both are ordinary CSS animations, so the global reduced-motion block
+   below neutralises them without this file knowing anything about it. */
+@keyframes fba-entrance-breath {
+  0%, 100% { opacity: 0.94; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.012); }
+}
+.fba-entrance-breath {
+  animation: fba-entrance-breath 18s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes fba-entrance-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.fba-entrance-rise {
+  animation: fba-entrance-rise 700ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* The Threshold's glass appears only when the member acts, so it arrives on
+   an interaction beat (Bible §08 rule 4: 200–300ms), not an entrance one. */
+.fba-glass-in {
+  animation: fba-rise 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .fba-ticker-track {
+    transform: translateX(0);
+  }
+}
+
+/* ── Sleep log sliders: a thumb big enough for a thumb, the night filled in. ── */
+.reserve-sleep-range {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  touch-action: pan-y;
+}
+.reserve-sleep-range::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent) 0 var(--fill), rgba(255, 255, 255, 0.08) var(--fill) 100%);
+}
+.reserve-sleep-range::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.reserve-sleep-range::-moz-range-progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.reserve-sleep-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  margin-top: -10px;
+  border-radius: 999px;
+  background: #f2eee6;
+  border: 3px solid var(--accent);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+.reserve-sleep-range::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #f2eee6;
+  border: 3px solid var(--accent);
+}
+.reserve-sleep-range:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Mobile input floor — no form control below 16px on phones, so iOS Safari
+   never zooms the viewport when a field is focused. This rule is unlayered, so
+   it wins over Tailwind text-size utilities (which live in the `utilities`
+   layer) without !important. Capped at 639px so Tailwind `sm:` sizes still
+   apply from the 640px breakpoint up — desktop stays as designed.
+   ────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 639px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

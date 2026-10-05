@@ -1,0 +1,242 @@
+# ════════════════════════════════════════════════════════════════════════
+# MOBILE RELEASE — builds the signed iOS and Android binaries.
+#
+# This box runs Windows and has no JDK, no Android SDK and no Xcode, so the
+# native builds happen here. The macOS runner is the only reason iOS is
+# buildable at all without buying a Mac.
+#
+# Deliberately manual (`workflow_dispatch`). A store binary is not something
+# to produce on every push: each upload consumes a build number, and TestFlight
+# and Play both keep whatever they are given.
+#
+# It builds and uploads artifacts. It does NOT submit to either store — the
+# first submission of an app needs a human in App Store Connect and the Play
+# Console anyway, and automating a submission is a decision to take
+# separately.
+# ════════════════════════════════════════════════════════════════════════
+
+name: Mobile release
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: Which binary to build
+        type: choice
+        options: [both, android, ios]
+        default: both
+      origin:
+        description: Origin the app will host (e.g. https://www.thereservelab.com)
+        type: string
+        required: true
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  # ── The checks that are cheap here and expensive after upload ─────────
+  preflight:
+    name: Preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      # Syncs capacitor.config.ts into the native projects so the preflight
+      # compares the origin against what would actually ship, not against a
+      # stale value someone committed weeks ago.
+      - name: Sync native projects
+        run: npm run mobile:sync
+        env:
+          RESERVE_MOBILE_ORIGIN: ${{ inputs.origin }}
+
+      - name: Release preflight
+        run: npm run mobile:doctor
+        env:
+          RESERVE_MOBILE_ORIGIN: ${{ inputs.origin }}
+          # Store builds keep Cycle & Safety closed until clinician and
+          # counsel sign off (CLAUDE.md). The preflight fails if this is true.
+          NEXT_PUBLIC_ENABLE_SAFETY_TOOLS: ""
+
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+      # A dependency added for the app still has to appear at /open-source.
+      - name: Licenses are current
+        run: npm run licenses:audit -- --check
+
+  # ── Android ──────────────────────────────────────────────────────────
+  android:
+    name: Android bundle
+    needs: preflight
+    if: inputs.platform == 'both' || inputs.platform == 'android'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: android-actions/setup-android@v3
+
+      - run: npm ci
+
+      - name: Sync native project
+        run: npm run mobile:sync
+        env:
+          RESERVE_MOBILE_ORIGIN: ${{ inputs.origin }}
+
+      # Play requires an upload key. Without these secrets the build would
+      # produce an unsigned bundle that the console rejects on upload, so
+      # stop here with a message that says which secret is missing.
+      - name: Check signing secrets
+        run: |
+          missing=""
+          [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ] && missing="$missing ANDROID_KEYSTORE_BASE64"
+          [ -z "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" ] && missing="$missing ANDROID_KEYSTORE_PASSWORD"
+          [ -z "${{ secrets.ANDROID_KEY_ALIAS }}" ] && missing="$missing ANDROID_KEY_ALIAS"
+          [ -z "${{ secrets.ANDROID_KEY_PASSWORD }}" ] && missing="$missing ANDROID_KEY_PASSWORD"
+          if [ -n "$missing" ]; then
+            echo "Missing repository secrets:$missing"
+            echo "See docs/mobile/APP_STORE_REQUIREMENTS.md for how each is produced."
+            exit 1
+          fi
+
+      - name: Restore upload keystore
+        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/upload-keystore.jks
+
+      - name: Build signed bundle
+        working-directory: android
+        run: ./gradlew bundleRelease
+        env:
+          RESERVE_KEYSTORE_PATH: upload-keystore.jks
+          RESERVE_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          RESERVE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          RESERVE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      # The keystore is the one artifact that must never outlive the job:
+      # anyone holding it can publish an update to the listing.
+      - name: Shred keystore
+        if: always()
+        run: rm -f android/app/upload-keystore.jks
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reserve-lab-android
+          path: android/app/build/outputs/bundle/release/*.aab
+          retention-days: 14
+
+  # ── iOS ──────────────────────────────────────────────────────────────
+  ios:
+    name: iOS archive
+    needs: preflight
+    if: inputs.platform == 'both' || inputs.platform == 'ios'
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Sync native project
+        run: npm run mobile:sync
+        env:
+          RESERVE_MOBILE_ORIGIN: ${{ inputs.origin }}
+
+      - name: Install pods
+        working-directory: ios/App
+        run: pod install --repo-update
+
+      - name: Check signing secrets
+        run: |
+          missing=""
+          [ -z "${{ secrets.APPLE_CERTIFICATE_BASE64 }}" ] && missing="$missing APPLE_CERTIFICATE_BASE64"
+          [ -z "${{ secrets.APPLE_CERTIFICATE_PASSWORD }}" ] && missing="$missing APPLE_CERTIFICATE_PASSWORD"
+          [ -z "${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}" ] && missing="$missing APPLE_PROVISIONING_PROFILE_BASE64"
+          [ -z "${{ secrets.APPLE_TEAM_ID }}" ] && missing="$missing APPLE_TEAM_ID"
+          if [ -n "$missing" ]; then
+            echo "Missing repository secrets:$missing"
+            echo "See docs/mobile/APP_STORE_REQUIREMENTS.md for how each is produced."
+            exit 1
+          fi
+
+      # A throwaway keychain, unlocked only for this job. The default login
+      # keychain on a shared runner is not a place to put a signing identity.
+      - name: Import signing identity
+        env:
+          CERT: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          PROFILE: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/reserve-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(uuidgen)"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+
+          echo "$CERT" | base64 -d > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -P "$CERT_PASSWORD" -A \
+            -t cert -f pkcs12 -k "$KEYCHAIN"
+          security list-keychain -d user -s "$KEYCHAIN"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          echo "$PROFILE" | base64 -d > "$HOME/Library/MobileDevice/Provisioning Profiles/reserve.mobileprovision"
+
+          rm -f "$RUNNER_TEMP/cert.p12"
+
+      - name: Archive and export
+        working-directory: ios/App
+        env:
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          xcodebuild -workspace App.xcworkspace -scheme App \
+            -configuration Release -sdk iphoneos \
+            -archivePath "$RUNNER_TEMP/Reserve.xcarchive" \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            archive
+
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$TEAM_ID</string>
+            <key>uploadSymbols</key><true/>
+          </dict>
+          </plist>
+          PLIST
+
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Reserve.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$RUNNER_TEMP/export"
+
+      - name: Remove signing keychain
+        if: always()
+        run: security delete-keychain "$RUNNER_TEMP/reserve-signing.keychain-db" || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reserve-lab-ios
+          path: ${{ runner.temp }}/export/*.ipa
+          retention-days: 14
