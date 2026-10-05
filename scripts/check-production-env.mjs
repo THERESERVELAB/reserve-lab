@@ -35,6 +35,23 @@ const SERVER_ONLY = [
   "WHOOP_CLIENT_SECRET",
 ];
 
+// Switches that must be OFF in production. Both default to off by being unset,
+// so this catches the one real failure mode: a flag turned on in Preview to try
+// something, then left on when the same settings reached Production.
+//
+//   DEMO_DATA seeds fabricated sleep, hydration, stress and physique records
+//   (lib/recovery/types.ts, lib/physique/types.ts). On a real account those
+//   invented numbers become the member's own recovery history.
+//
+//   SAFETY_TOOLS reveals Cycle & Safety, the Bloodwork safety panel and the
+//   marker guide. CLAUDE.md holds these closed until a licensed clinician and
+//   counsel have signed the compound risk profiles off; shipping them early
+//   publishes review-pending material as if it were reviewed.
+const MUST_BE_OFF = [
+  "NEXT_PUBLIC_ENABLE_DEMO_DATA",
+  "NEXT_PUBLIC_ENABLE_SAFETY_TOOLS",
+];
+
 // Optional server vars — reported for visibility, never required to pass.
 const OPTIONAL = [
   "SUPABASE_SERVICE_ROLE_KEY",
@@ -92,6 +109,15 @@ for (const name of SERVER_ONLY) {
   const exposed = has(publicName);
   lines.push(`  ${exposed ? "EXPOSED!" : "clear   "}  ${publicName}`);
   if (exposed) errors.push(`Server secret exposed to the browser: ${publicName}`);
+}
+
+// A launch switch left on is not a missing name — it is shipped behavior.
+lines.push("");
+lines.push("Launch switches (must all be OFF in production):");
+for (const name of MUST_BE_OFF) {
+  const on = (process.env[name] ?? "").trim().toLowerCase() === "true";
+  lines.push(`  ${on ? "ON!     " : "off     "}  ${name}`);
+  if (on) errors.push(`Launch switch is on and must not be in production: ${name}`);
 }
 
 console.log(lines.join("\n"));
